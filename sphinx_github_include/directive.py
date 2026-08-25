@@ -5,35 +5,63 @@ import re
 import requests
 from docutils import nodes
 from docutils.parsers.rst import directives
-from docutils.parsers.rst.directives.misc import Include
 from docutils.utils import new_document
-from myst_parser.docutils_ import Parser
+from myst_parser.parsers.docutils_ import Parser
+from sphinx.util.docutils import SphinxDirective
 
 
-class RemoteIncludeDirective(Include):
-    """Include directive that supports fetching content from GitHub.
+class RemoteIncludeDirective(SphinxDirective):
+    """Directive for fetching and including content from GitHub repositories.
 
-    Extends the standard Docutils Include directive to support GitHub URLs
-    in the format: owner/repo:path
+    Supports GitHub URLs in the format: owner/repo:path
 
-    Supports all standard Include options plus:
+    Supports standard Include directive options:
+    - :literal: - Display as literal block
+    - :code: - Display as code with syntax highlighting
+    - :number-lines: - Add line numbers to code blocks
+    - :start-line: - Start from line number (1-indexed)
+    - :end-line: - End at line number (1-indexed)
+    - :start-after: - Start after text marker
+    - :end-before: - End before text marker
+    - :class: - Add CSS classes
+    - :name: - Add reference name
+    - :encoding: - Specify file encoding
+    - :tab-width: - Tab width for expanding tabs
+
+    Plus GitHub-specific options:
     - :branch: - Specify a branch name
     - :tag: - Specify a tag name
     - :commit: - Specify a commit SHA
     """
 
-    # Extend parent option_spec with GitHub-specific options
-    option_spec = (Include.option_spec or {}).copy()
-    option_spec.update(
-        {
-            "branch": directives.unchanged,
-            "tag": directives.unchanged,
-            "commit": directives.unchanged,
-        }
-    )
+    # Directive configuration
+    has_content = False
+    required_arguments = 1
+    optional_arguments = 0
+    final_argument_whitespace = True
+
+    # Define option_spec with all Include directive options plus GitHub-specific ones
+    option_spec = {
+        # Standard Include options
+        "literal": directives.flag,
+        "code": directives.unchanged,
+        "number-lines": directives.unchanged,
+        "start-line": directives.nonnegative_int,
+        "end-line": directives.nonnegative_int,
+        "start-after": directives.unchanged,
+        "end-before": directives.unchanged,
+        "class": directives.class_option,
+        "name": directives.unchanged,
+        "encoding": directives.encoding,
+        "tab-width": directives.nonnegative_int,
+        # GitHub-specific options
+        "branch": directives.unchanged,
+        "tag": directives.unchanged,
+        "commit": directives.unchanged,
+    }
 
     def run(self) -> list[nodes.Node]:
-        """Process the directive - intercept GitHub URLs before parent path resolution.
+        """Process the directive - require GitHub URL format.
 
         Returns:
             List of docutils nodes
@@ -49,14 +77,13 @@ class RemoteIncludeDirective(Include):
         github_pattern = r"^([\w-]+)/([\w.-]+):(.+)$"
         match = re.match(github_pattern, path)
 
-        if match:
-            # This is a GitHub URL - handle it specially
-            return self._handle_github_include(match)
+        if not match:
+            raise self.error(
+                f"github-include requires GitHub URL format 'owner/repo:path', got: {path}"
+            )
 
-        # Not a GitHub URL - delegate to parent class
-        result = super().run()
-        # Ensure we return a list (parent may return Sequence)
-        return list(result) if not isinstance(result, list) else result
+        # Handle GitHub URL
+        return self._handle_github_include(match)
 
     def _handle_github_include(self, match: re.Match[str]) -> list[nodes.Node]:
         """Handle GitHub URL includes by fetching and parsing content directly.
@@ -124,6 +151,7 @@ class RemoteIncludeDirective(Include):
         # Check if this is a Markdown file
         if file_path.endswith((".md", ".markdown")):
             return self._parse_markdown_content(content, source)
+
         # Parse as RST using the same approach as Include directive
         lines = content.splitlines()
         # Insert the content into the state machine's input

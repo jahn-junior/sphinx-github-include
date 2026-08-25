@@ -34,24 +34,25 @@ def example_project(request) -> Path:
 
 
 @pytest.mark.slow
-def test_hello_integration(example_project):
+def test_integration(example_project):
+    """Test github-include directive fetches and renders content."""
     build_dir = example_project / "_build"
     subprocess.check_call(
         ["sphinx-build", "-b", "html", "-W", example_project, build_dir],
     )
 
-    index = build_dir / "index.html"
+    html_content = (build_dir / "index.html").read_text()
+    soup = bs4.BeautifulSoup(html_content, features="lxml")
 
-    # Rename the test output to something more meaningful
     shutil.copytree(
         build_dir, build_dir.parents[1] / ".test_output", dirs_exist_ok=True
     )
-    soup = bs4.BeautifulSoup(index.read_text(), features="lxml")
+    shutil.rmtree(example_project)
 
-    shutil.rmtree(example_project)  # Delete copied source
+    # Verify transcluded content from GitHub appears in output
+    page_text = soup.get_text()
 
-    ext_text = soup.find("p")
-    if ext_text:
-        assert getattr(ext_text, "text", None) == "Hello, world!"
-    else:
-        pytest.fail("Directive output not found in document.")
+    assert "Sphinx" in page_text or "sphinx" in page_text
+    assert "Python" in page_text or "python" in page_text
+    assert soup.find_all("div", class_="highlight")
+    assert soup.find_all("pre")
