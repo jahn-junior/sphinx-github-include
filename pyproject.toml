@@ -1,6 +1,6 @@
 [project]
 name = "sphinx-github-include"
-description = "An example extension."
+description = "Include and parse remote reStructuredText or Markdown in your Sphinx docs."
 dynamic = ["version", "readme"]
 requires-python = ">=3.10"
 dependencies = [
