@@ -1,3 +1,5 @@
+_This extension was written by a [Sphinx development agent](https://github.com/jahn-junior/sphinx-dev-agent)._
+
 # sphinx-github-include
 
 sphinx-github-include adds a Sphinx directive for including content directly from GitHub
