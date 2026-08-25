@@ -1,55 +1,73 @@
-# hello-ext
+# sphinx-github-include
 
-<!-- Answer elevator-pitch questions about the extension – What is it? What does it do? What
-essential problem does it solve? -->
-
-hello-ext adds a Sphinx directive that generates a custom greeting.
+sphinx-github-include adds a Sphinx directive for including content directly from GitHub
+repositories using the format `owner/repo:path`.
 
 ## Basic usage
 
-<!-- Provide a few examples of the extension's most common use cases. Remember the Pareto
-principle! -->
+Include and parse RST or Markdown content:
 
-To generate a greeting, add the `hello` directive to your document:
-
+```rst
+.. github-include:: sphinx-doc/sphinx:README.rst
+   :branch: master
+   :start-line: 21
+   :end-line: 25
 ```
-.. hello:: world!
+
+Display code with syntax highlighting using `:code:`:
+
+```rst
+.. github-include:: python/cpython:Lib/this.py
+   :code: python
+   :number-lines:
+```
+
+Display literal text using `:literal:`:
+
+```rst
+.. github-include:: github/gitignore:Python.gitignore
+   :literal:
+```
+
+Specify a version with `:branch:`, `:tag:`, or `:commit:` (defaults to `main`):
+
+```rst
+.. github-include:: owner/repo:path/to/file.py
+   :tag: v1.0.0
+```
+
+Filter lines with `:start-line:`, `:end-line:`, `:start-after:`, or `:end-before:`:
+
+```rst
+.. github-include:: owner/repo:example.py
+   :start-line: 10
+   :end-line: 50
 ```
 
 ## Project setup
 
-<!-- Provide the simplest way to install the extension. In most cases, this will
-be via `pip`. -->
-
-hello-ext is published on PyPI and can be installed with:
+Install via pip:
 
 ```bash
-pip install hello-ext
+pip install sphinx-github-include
 ```
 
-After adding hello-ext to your Python project, update your conf.py file to include
-hello-ext as one of its extensions:
+Add to your `conf.py`:
 
 ```python
 extensions = [
-    "hello_ext"
+    "sphinx_github_include"
 ]
 ```
 
 ## Community and support
 
-<!-- This is boilerplate. Replace the extension name and GitHub link. -->
-
-You can report any issues or bugs on the project's [GitHub
+Report issues on the [GitHub
 repository](https://github.com/canonical/sphinx-ext-template).
 
-hello-ext is covered by the [Ubuntu Code of
+sphinx-github-include is covered by the [Ubuntu Code of
 Conduct](https://ubuntu.com/community/ethos/code-of-conduct).
 
 ## License and copyright
 
-<!-- Replace the extension name and, if necessary, the extension's license. -->
-
-hello-ext is released under the [GPL-3.0 license](LICENSE).
-
-© 2025 Canonical Ltd.
+sphinx-github-include is released under the [GPL-3.0 license](LICENSE).
